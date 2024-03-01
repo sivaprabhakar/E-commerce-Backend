@@ -59,10 +59,10 @@ const addRatingAndReview  = async(req,res)=>{
 
 const getAllProducts =async(req,res)=>{
     try {
-        const allProducts = await productModel.find()
-    if(allProducts){
-        res.status(200).send({message:"products gets sucessfully",
-        allProducts})
+        const Products = await productModel.find()
+    if(Products){
+        res.status(200).send({
+        Products})
     }
     else{
         res.status(404).send({message:"products not found"})
