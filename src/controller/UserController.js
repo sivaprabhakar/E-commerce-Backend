@@ -14,10 +14,11 @@ const create = async(req,res)=>{
           }
         let user = await userModel.findOne({email:req.body.email})
         if(!user){
-            req.body.password = await Auth.hashPassword(req.body.password)
-            await userModel.create(req.body)
+           let hasedPassword= await Auth.hashPassword(req.body.password)
+           let users= await userModel.create({firstName,lastName,email, password: hasedPassword})
             res.status(201).send({
-                message:"user created sucessfully"
+               id:users._id,
+               email:users.email
             })
 
         }
