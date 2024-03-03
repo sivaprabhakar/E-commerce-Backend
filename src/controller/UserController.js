@@ -6,19 +6,12 @@ import Auth from "../common/auth.js"
 //signup users function
 const create = async(req,res)=>{
     try {
-        const{firstName,lastName,email,password}=req.body;
-        if (!firstName || !lastName || !email || !password) {
-            return res.status(400).send({
-              message: "Missing required fields: firstName, lastName, email, password"
-            });
-          }
         let user = await userModel.findOne({email:req.body.email})
         if(!user){
-           let hasedPassword= await Auth.hashPassword(req.body.password)
-           let users= await userModel.create({firstName,lastName,email, password: hasedPassword})
+            req.body.password = await Auth.hashPassword(req.body.password)
+            await userModel.create(req.body)
             res.status(201).send({
-               id:users._id,
-               email:users.email
+                message:"user created sucessfully"
             })
 
         }
