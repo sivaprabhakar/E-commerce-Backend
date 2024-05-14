@@ -4,7 +4,7 @@ import userModel from "../models/User.js";
 // Create Order
 const createOrder = async (req, res) => {
     try {
-        const { userId, items, shippingAddress,phone } = req.body;
+        const { userId, items, shippingInfo} = req.body;
         
         // Calculate the total price based on the items in the cart
         let totalPrice = 0;
@@ -17,7 +17,7 @@ const createOrder = async (req, res) => {
         }
 
         // Create the order
-        const order = await OrderModel.create({ user: userId, items, totalPrice, shippingAddress,phone });
+        const order = await OrderModel.create({ user: userId, items, totalPrice, shippingInfo });
         await userModel.findByIdAndUpdate(userId, { $push: { orders: order._id } });
         res.status(201).json({ message: 'Order created successfully', order });
     } catch (error) {
@@ -81,4 +81,18 @@ const getOrderById = async (req, res) => {
     }
 };
 
-export default { createOrder, updateOrder, deleteOrder,getOrderById,getAllOrders };
+const getUserOrders = async (req,res) => {
+    const {userId} = req.params
+    try {
+      // Find orders with the provided user ID
+     
+      const userOrders = await OrderModel.find({ user: userId}).populate('items.product');
+  
+      res.status(200).send(userOrders);
+  } catch (error) {
+    console.error('Error getting user orders:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
+export default { createOrder, updateOrder, deleteOrder,getOrderById,getAllOrders,getUserOrders};

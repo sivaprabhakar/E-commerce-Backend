@@ -26,15 +26,29 @@ const orderSchema = new mongoose.Schema({
         required: false,
         min: 0,
     },
-    shippingAddress: {
-        type: String,
-        required: true,
+    shippingInfo: {
+        address: {
+            type: String,
+            required: true
+        },
+        country: {
+            type: String,
+            required: true
+        },
+        city: {
+            type: String,
+            required: true
+        },
+        phoneNo: {
+            type: String,
+            required: true
+        },
+        postalCode: {
+            type: String,
+            required: true
+        }
     },
-    phone:{
-      type:String,
-      required: true,
-      
-    },
+  
     paymentId: {
         type: String,
         required: false,
@@ -54,6 +68,7 @@ const orderSchema = new mongoose.Schema({
         enum: ['not shipped', 'shipped', 'delivered'],
         default: 'not shipped',
     },
+    
     createdAt: {
         type: Date,
         default: Date.now,

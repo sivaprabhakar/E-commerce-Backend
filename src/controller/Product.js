@@ -144,33 +144,70 @@ const getProductById = async (req, res) => {
     };
     
     const searchProducts = async (req, res) => {
-        try {
-            let { query, category, sortBy, sortOrder } = req.query;
-            let filter = {};
-    
-            if (query) {
-                filter.title = { $regex: query, $options: "i" };
-            }
-    
-            if (category) {
-                filter.category = category;
-            }
-    
-            let sort = {};
-            if (sortBy) {
-                sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
-            }
-    
-            const products = await productModel.find(filter).sort(sort);
-    
-            res.status(200).send(products);
-        } catch (error) {
-            res.status(500).send({
-                message: "Internal Server Error",
-                error: error.message
-            });
+    try {
+        const { query, category, sortBy, sortOrder } = req.query;
+
+       // Input validation
+if (query && typeof query !== 'string') {
+    return res.status(400).send({
+        message: "Bad Request",
+        error: "Invalid input type for 'query'"
+    });
+}
+
+if (category && typeof category !== 'string') {
+    return res.status(400).send({
+        message: "Bad Request",
+        error: "Invalid input type for 'category'"
+    });
+}
+
+if (sortBy && typeof sortBy !== 'string') {
+    return res.status(400).send({
+        message: "Bad Request",
+        error: "Invalid input type for 'sortBy'"
+    });
+}
+
+if (sortOrder && typeof sortOrder !== 'string') {
+    return res.status(400).send({
+        message: "Bad Request",
+        error: "Invalid input type for 'sortOrder'"
+    });
+}
+
+        let filter = {};
+
+        if (query) {
+            filter.title = { $regex: query, $options: "i" };
         }
-    };
+
+        if (category) {
+            filter.category = category;
+        }
+
+        let sort = {};
+        if (sortBy) {
+            sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
+        }
+
+        // Pagination (adjust as needed)
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        const products = await productModel.find(filter).sort(sort).skip(skip).limit(limit);
+
+        res.status(200).send(products);
+    } catch (error) {
+        console.error('Error searching products:', error);
+        res.status(500).send({
+            message: "Internal Server Error",
+            error: error.message
+        });
+    }
+};
+
     
     
     

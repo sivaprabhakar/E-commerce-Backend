@@ -4,29 +4,38 @@ import Auth from "../common/auth.js"
 
 
 //signup users function
-const create = async(req,res)=>{
+const create = async (req, res) => {
     try {
-        let user = await userModel.findOne({email:req.body.email})
-        if(!user){
-            req.body.password = await Auth.hashPassword(req.body.password)
-            await userModel.create(req.body)
-            res.status(201).send({
-                message:"user created sucessfully"
-            })
-
-        }
-        else{
-            res.status(400).send({
-                message:`user with email ${req.body.email} already exists`
-            })
-        }
+      const { firstName, lastName, email, password } = req.body;
+      if (!firstName || !lastName || !email || !password) {
+        return res.status(400).send({
+          message: "Missing required fields: firstName, lastName, email, password"
+        });
+      }
+  
+      let user = await userModel.findOne({ email: req.body.email });
+      if (!user) {
+        req.body.password = await Auth.hashPassword(req.body.password);
+        await userModel.create(req.body);
+        res.status(201).send({
+          message: "User created successfully"
+        });
+      } else {
+        res.status(400).send({
+          message: `User with email ${req.body.email} already exists`
+        });
+      }
     } catch (error) {
-        res.status(500).send({
-            message:"Internal Server Error",
-            error:error.message
-        })
+      res.status(500).send({
+        message: "Internal Server Error",
+        error: error.message
+      });
     }
-}
+  };
+  
+
+
+
     // login user function
      const logIn = async(req,res)=>{
    
@@ -39,7 +48,7 @@ const create = async(req,res)=>{
             let hashCompare = await Auth.hashCompare(req.body.password,user.password)
             if(hashCompare){
                 let token = await Auth.createToken({
-                    id:user._id,
+                  
                     firstName:user.firstName,
                     lastName:user.lastName,
                     email:user.email,
@@ -48,6 +57,7 @@ const create = async(req,res)=>{
                 let userData = await userModel.findOne({email:req.body.email},{_id:0,password:0,email:0,firstName:0,lastName:0})
                 res.status(200).send({
                     message:'login sucessfull',
+                    userId:user._id,
                     token,
                     userData
                 })
@@ -108,22 +118,30 @@ const create = async(req,res)=>{
       
     }
    }
-  const userUpdate = async(req,res)=>{
+   const userUpdate = async (req, res) => {
     try {
-        let userId = req.params.id
-        const userData = req.body
-
-        const updatedUser = await userModel.findByIdAndUpdate(userId,userData,{new:true ,projection: { password: 0 }})
-        if (!updatedUser) {
-            res.status(404).send({ message: 'User not found' });
-          }
-          else{
-            res.status(200).send({message:"user updated sucessfully", user:updatedUser})
-          }
+      const { id } = req.params;
+      const { address, country, city, postalCode, phoneNo } = req.body;
+  
+      // Check if user is authorized to update their own data (optional)
+      if (req.user.userId !== id) {
+        return res.status(403).json({ message: 'Unauthorized' });
+      }
+  
+      const updatedUser = await userModel.findByIdAndUpdate(
+        id,
+        { address, country, city, postalCode, phoneNo },
+        { new: true, projection: { password: 0 } }
+      );
+      if (!updatedUser) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      res.status(200).json({ message: 'User updated successfully', user: updatedUser });
     } catch (error) {
-        
+      res.status(500).json({ message: 'Internal server error', error: error.message });
     }
-  }
+  };
+  
   const addToWishlist = async (req, res) => {
     try {
         const { userId, productId } = req.body;

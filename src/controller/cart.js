@@ -4,15 +4,20 @@ import userModel from "../models/User.js";
 const addToCart = async (req, res) => {
     try {
         const { userId, productId, quantity } = req.body;
-        // check if the product exists
+        // Check if the product exists
         const product = await productModel.findById(productId);
         if (!product) {
             return res.status(404).send({ message: "Product not found" });
         }
 
-        // add product to user's cart
-        let user = await userModel.findById(userId);
-        user.cart.push({ product: productId, quantity }); // Use 'product: productId' to correctly assign the product ID
+        // Check if the product is already in the user's cart
+        const user = await userModel.findById(userId);
+        if (user.cart.some(item => item.product.toString() === productId)) {
+            return res.status(400).send({ message: "Product already in cart" });
+        }
+
+        // Add product to user's cart
+        user.cart.push({ product: productId, quantity });
         await user.save();
         const { email, cart } = user;
         res.status(200).send({ message: "Product added to cart successfully", email, cart });
@@ -23,6 +28,7 @@ const addToCart = async (req, res) => {
         });
     }
 };
+
 
 const removeFromCart = async (req, res) => {
     try {
